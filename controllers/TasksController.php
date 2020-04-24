@@ -15,7 +15,7 @@ class TasksController{
 
     function add_task($task){
         $data = $this->tasks->add_task($task);
-        return $data;
+        var_dump($data);
     }
 
     function edit_task_text($task_id, $new_text){

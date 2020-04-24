@@ -1,6 +1,4 @@
 <?php
-require_once('models/Users.php');
-
 class UsersController{
     function auth($login, $password){
         if(($login === 'admin') && ($password === '123')){
