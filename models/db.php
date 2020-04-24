@@ -1,6 +1,6 @@
 <?php
-$db_host = 'localhost';
+$db_host = '127.0.0.1';
 $db_port = '3306';
-$db_user = '';
+$db_user = 'root';
 $db_pass = 'mysqlpass';
-$db_name = '';
+$db_name = 'TODO_db';

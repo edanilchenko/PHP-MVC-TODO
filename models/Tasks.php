@@ -3,29 +3,31 @@ class Tasks{
     var $tasks = array();
 
     function get_tasks(){
-        array_push($this->tasks, [
-            'name' => 'Vasya', 
-            'email' => 'vasya@mail.com', 
-            'text' => 'Почистить зубы', 
-            'is_closed' => false, 
-            'is_edited' => false
-        ]);
-        array_push($this->tasks, [
-            'name' => 'Petya', 
-            'email' => 'petya@mail.com', 
-            'text' => 'Погладить кота', 
-            'is_closed' => false, 
-            'is_edited' => false
-        ]);
-        // array_push($tasks, ['Ivan', 'ivan@mail.com', 'Выкинуть мусор', false, false]);
-        // array_push($tasks, ['Fedor', 'fedor@mail.com', 'Съесть борщ', false, false]);
+        require_once('db.php');
+        $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
+        if ($mysqli->connect_errno) {
+            echo "Не удалось подключиться к MySQL: " . $mysqli->connect_error;
+        }
+        $result = $mysqli->query("SELECT * FROM tasks;");
+        $tasks = array();
+        while( $row = $result->fetch_assoc() ){
+            array_push($tasks, $row);
+        }
+        $mysqli->close();
 
-        return $this->tasks;
+        return json_encode($tasks);
     }
 
     function add_task($task = array()){
-        array_push($this->tasks, $task);
-        var_dump($this->tasks);
-        return 'Task was added successfully!';
+        require_once('db.php');
+        $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
+        if ($mysqli->connect_errno) {
+            echo "Не удалось подключиться к MySQL: " . $mysqli->connect_error;
+        }
+        extract($task);
+        $result = $mysqli->query("INSERT INTO tasks(Name, Email, Text, Closed, Edited) VALUES ('$name', '$email', '$text', 0, 0);");
+        $mysqli->close();
+
+        return $result;
     }
 }
