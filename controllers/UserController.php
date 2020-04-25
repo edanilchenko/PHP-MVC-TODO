@@ -1,12 +1,17 @@
 <?php
 class UsersController{
     function auth($login, $password){
+        $res = array();
         if(($login === 'admin') && ($password === '123')){
             $_SESSION['admin'] = '1';
-            return 'Вы успешно авторизованы';
+            $res['success'] = true;
+            $res['message'] = 'Вы успешно авторизованы';
+            echo json_encode($res);
         }
         else{
-            return 'Неверное имя пользователя или пароль';
+            $res['success'] = false;
+            $res['message'] = 'Неверное имя пользователя или пароль';
+            echo json_encode($res);
         }
     }
 

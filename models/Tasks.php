@@ -30,10 +30,19 @@ class Tasks{
         $name = $mysqli->real_escape_string($task['name']);
         $email = $mysqli->real_escape_string($task['email']);
         $text = $mysqli->real_escape_string($task['text']);
-        $result = $mysqli->query("INSERT INTO tasks(Name, Email, Text, Status) VALUES ('$name', '$email', '$text', 'Open');");
+        $result = $mysqli->query("INSERT INTO tasks(Name, Email, Text, Status) VALUES ('$name', '$email', '$text', 'Открыто');");
         $mysqli->close();
 
-        return $result;
+        if($result === true){
+            $res['success'] = true;
+            $res['message'] = 'Задача успешно добавлена';
+        }
+        else{
+            $res['success'] = false;
+            $res['message'] = 'Ошибка при добавлении задачи';
+        }
+        
+        return json_encode($res);
     }
 
     function edit_task_text($task_id, $new_text){
@@ -47,7 +56,16 @@ class Tasks{
         $result = $mysqli->query("UPDATE tasks SET Text = '$new_text', Edited = 'Изменено' WHERE idTasks = '$task_id'");
         $mysqli->close();
 
-        return $result;
+        if($result === true){
+            $res['success'] = true;
+            $res['message'] = 'Задача успешно обновлена';
+        }
+        else{
+            $res['success'] = false;
+            $res['message'] = 'Ошибка при обновлении задачи';
+        }
+        
+        return json_encode($res);
     }
 
     function edit_task_status($task_id, $new_status){
@@ -61,6 +79,15 @@ class Tasks{
         $result = $mysqli->query("UPDATE tasks SET Status = '$new_status' WHERE idTasks = '$task_id'");
         $mysqli->close();
 
-        return $result;
+        if($result === true){
+            $res['success'] = true;
+            $res['message'] = 'Статус успешно обновлен';
+        }
+        else{
+            $res['success'] = false;
+            $res['message'] = 'Ошибка при обновлении статуса';
+        }
+        
+        return json_encode($res);
     }
 }

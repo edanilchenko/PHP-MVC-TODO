@@ -1,58 +1,117 @@
 <?php require_once('Header.php'); ?>
-<script src="js/table-sortable.js"></script>
-<script src="js/data.js"></script>
-<form action="">
-    <input type="hidden" name="action" value="add">
-    <input type="text" required name="name">
-    <input type="email" required name="email">
-    <input type="text" required name="text">
-    <input type="submit" value="Create task">
-</form>
-<div id = "root">
+<div class="container">
+    <div class="alert alert-success" id="list_success_alert" role="alert" style="display:none;">
+    </div>
+    <div class="alert alert-danger" id="list_danger_alert" role="alert" style="display:none;">
+    </div>
+    <form action="" class="form-inline" id="add_task_form">
+        <input type="hidden" name="action" value="add">
+        <div class="form-group mb-2">
+            <input type="text" class="form-control" placeholder="Имя" required name="name">
+        </div>
+        <div class="form-group mx-sm-3  mb-2">
+            <input type="email" class="form-control" placeholder="Емейл" required name="email">
+        </div>
+        <div class="form-group mb-2">
+            <input type="text" class="form-control" placeholder="Текст" required name="text">
+        </div>
+        <input type="submit" class="btn btn-primary mx-sm-3 mb-2" value="Добавить задачу">
+    </form>
+    <script>
+        $('#add_task_form').submit(function(e){
+            e.preventDefault();
+            $.ajax({
+                type: "POST",
+                url: "index.php",
+                data: $(e.target).serialize()
+            }).done(function(res){
+                res = JSON.parse(res);
+                if(res.success){
+                    $('#list_success_alert')[0].innerText = res.message;
+                    $('#list_success_alert').show();
+                    setTimeout(function(){
+                        document.location.href = 'index.php';
+                    }, 2000);
+                }
+                else{
+                    $('#list_danger_alert')[0].innerText = res.message;
+                    $('#list_danger_alert').show();
+                    setTimeout(function(){
+                        $('#list_danger_alert').hide();
+                    }, 3000);
+                }
+            });
+        });
+    </script>
+    <div id = "root">
+        <table id="task_table" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                <th class="th-sm">ID
+                </th>
+                <th class="th-sm">Имя
+                </th>
+                <th class="th-sm">Емейл
+                </th>
+                <th class="th-sm">Текст
+                </th>
+                <th class="th-sm">Статус
+                </th>
+                <th class="th-sm">
+                </th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $tasks = json_decode($data);
+                foreach($tasks as $task) : ?>
+                <tr>
+                    <td><?=$task->idTasks; ?></td>
+                    <td><?=$task->Name; ?></td>
+                    <td><?=$task->Email; ?></td>
+                    <?php if(isset($_SESSION['admin'])) : ?>
+                    <td>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control new_text" aria-label="Recipient's username" aria-describedby="basic-addon2" value="<?=$task->Text; ?>">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary text_edit" type="button" data-item="<?=$task->idTasks; ?>">Сохранить</button>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                    <?php
+                        $statuses = ['Открыто', 'Выполнено'];
+                        unset($statuses[array_search($task->Status, $statuses)]);
+                    ?>
+                        <select class="form-control status_edit" data-item="<?=$task->idTasks; ?>">
+                            <option><?=$task->Status; ?></option>
+                            <?php foreach($statuses as $status) : ?>
+                            <option><?=$status;?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </td>
+                    <?php else: ?>
+                    <td><?=$task->Text; ?></td>
+                    <td><?=$task->Status; ?></td>
+                    <?php endif; ?>
+
+                    <td><?=$task->Edited; ?></td>
+                </tr>
+                <?php endforeach; ?>                
+            </tbody>
+        </table>
+    </div>
 </div>
+
 <script>
-    var data = <?=$data; ?>;
-    var columns = {
-        idTasks: 'ID',
-        Name: 'Имя',
-        Email: 'Емейл',
-        Text: 'Текст',
-        Status: 'Статус'
-    };
-    var table = $('#root').tableSortable({
-        data,
-        columns,
-        rowsPerPage: 3,
-        pagination: true,
-        tableWillMount: () => {
-            console.log('table will mount')
-        },
-        tableDidMount: () => {
-            console.log('table did mount')
-        },
-        onPaginationChange: function(nextPage, setPage) {
-            setPage(nextPage);
-        },
-        <?php if(isset($_SESSION['admin'])): ?>
-        formatCell: function(row, key) {
-            if(key === 'idTasks'){
-                return '<span class="task_id">'+row[key]+'</span>'
-            }
-            if (key === 'Text') {
-                return '<textarea class="new_text">' + row[key] + '</textarea><a href="#" class="text_edit">Edit</a>';
-            }
-            if (key === 'Status') {
-                return '<select class="status_edit"><option>' + row[key] + '</option><option>Open</option><option>Done</option></select>';
-            }
-            // Finally return cell for rest of columns;
-            return row[key];
-        }
-        <?php endif; ?>
+    $('#task_table').DataTable({
+        order: [[ 0, "desc" ]],
+        lengthMenu: [3]
     });
 
     $('.text_edit').click(function(e){
-        var task_id = $(e.target).parent().parent().find('.task_id')[0].innerText;
-        var new_text = $(e.target).parent().find('.new_text')[0].value;
+        var task_id = $(e.target).attr('data-item');
+        var new_text = $(e.target).parent().parent().find('.new_text')[0].value;
 
         $.ajax({
             type: "POST",
@@ -63,13 +122,31 @@
                 text: new_text
             }
         }).done(function(res){
-            console.log(res);
+            res = JSON.parse(res);
+            if(res.success){
+                $('#list_success_alert')[0].innerText = res.message;
+                $('#list_success_alert').show();
+                setTimeout(function(){
+                    $('#list_success_alert').hide();
+                }, 3000);
+            }
+            else{
+                $('#list_danger_alert')[0].innerText = res.message;
+                $('#list_danger_alert').show();
+                setTimeout(function(){
+                    $('#list_danger_alert').hide();
+                }, 3000);
+            }
         });
     });
 
     $('select.status_edit').change(function(e){
-        var task_id = $(e.target).parent().parent().find('.task_id')[0].innerText;
+        var task_id = $(e.target).attr('data-item');
         var new_status = $(this).find(":selected").val();
+
+        console.log(task_id);
+        console.log(new_status);
+
         $.ajax({
             type: "POST",
             url: "index.php",
@@ -79,7 +156,21 @@
                 status: new_status
             }
         }).done(function(res){
-            console.log(res);
+            res = JSON.parse(res);
+            if(res.success){
+                $('#list_success_alert')[0].innerText = res.message;
+                $('#list_success_alert').show();
+                setTimeout(function(){
+                    $('#list_success_alert').hide();
+                }, 3000);
+            }
+            else{
+                $('#list_danger_alert')[0].innerText = res.message;
+                $('#list_danger_alert').show();
+                setTimeout(function(){
+                    $('#list_danger_alert').hide();
+                }, 3000);
+            }
         });
     });
 </script>

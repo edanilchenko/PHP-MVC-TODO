@@ -15,26 +15,30 @@ class TasksController{
 
     function add_task($task){
         $data = $this->tasks->add_task($task);
-        var_dump($data);
+        echo $data;
     }
 
     function edit_task_text($task_id, $new_text){
         if(isset($_SESSION['admin'])){
             $data = $this->tasks->edit_task_text($task_id, $new_text);
-            return $data;
+            echo $data;
         }
         else{
-            return 'Действие недоступно';
+            $res['success'] = false;
+            $res['message'] = 'Действие доступно только администраторам';
+            echo json_encode($res);
         }
     }
 
     function edit_task_status($task_id, $new_status){
         if(isset($_SESSION['admin'])){
             $data = $this->tasks->edit_task_status($task_id, $new_status);
-            return $data;
+            echo $data;
         }
         else{
-            return 'Действие недоступно';
+            $res['success'] = false;
+            $res['message'] = 'Действие доступно только администраторам';
+            echo json_encode($res);
         }
     }
 }
